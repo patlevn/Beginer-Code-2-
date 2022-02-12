@@ -1,0 +1,186 @@
+---
+title: "Homework Coding 2"
+author: "KhoaLe"
+date: "02/07/2022"
+output:
+  pdf_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+tinytex::install_tinytex()
+```
+
+# Chapter 6
+# Question 6.7.3
+**(a)**
+
+```{r}
+# Using the isis dataset to the data frame
+mydf_iris <- iris
+
+# Grouping label - Coverting to binary 
+mydf_iris$binary <- gsub("setosa", "0", mydf_iris$Species)
+mydf_iris$binary <- gsub("versicolor", "0", mydf_iris$binary)
+mydf_iris$binary <- gsub("virginica", "1", mydf_iris$binary)
+
+
+# Convert to numeric 
+mydf_iris$binary <- as.numeric(mydf_iris$binary)
+
+```
+
+**(b)**
+
+```{r}
+# Reading library 
+library(splitstackshape)
+
+# Sampling into training and testing 
+training_testing_iris <- stratified(as.data.frame(mydf_iris), group = 6, 
+                                    size = 0.8, bothSets = T)
+# Deleting Species 
+df <- subset(mydf_iris, select = -c(Species))
+
+# Building a logistic regression with using all data 
+my_logit <- glm(binary ~ Sepal.Length+Sepal.Width+Petal.Length+Petal.Width,
+                data = df, family = "binomial")
+# Summary my_logit
+summary(my_logit)
+```
+The result of summary my_logit
+**(c)**
+
+```{r}
+# Calculate the probability
+my_prob <- 1/(1+exp(-(-42.638 +-2.465*9 +-6.681*5 + 9.429*10 + 18.286*7)))
+
+# Print result
+print(my_prob)
+
+```
+Base on the logistic regression model, there will be 100% chance of a new plant
+being a Virginca. 
+
+
+# Question 6.7.4
+**(a)**
+```{r}
+# Reading library 
+library(rpart)
+
+# Using the kyphosis dataset to the data frame
+mydf_kyphosis <- kyphosis
+
+# Converting variable to numeric 
+mydf_kyphosis$binary <- gsub("present", "1", mydf_kyphosis$Kyphosis)
+mydf_kyphosis$binary <- gsub("absent", "0", mydf_kyphosis$binary)
+
+# Converting to numeric
+mydf_kyphosis$binary <- as.numeric(mydf_kyphosis$binary)
+```
+**(b)**
+
+```{r}
+# Building a logistic regression with using all data 
+my_logit1 <- glm(binary ~ Age+Number+Start,
+                data = mydf_kyphosis, family = "binomial")
+# Summary my_logit
+summary(my_logit1)
+```
+
+Base on the summary, we have:
+
+- The variables of Age and Number are both insignificant
+
+- Start variable has a great impact on our regression with p-value = 0.00229
+
+**(c)**
+```{r}
+# Calculate the probability
+my_prob1 <- 1/(1+exp(-(-2.036934 + 0.010930*50 + 0.410601*5 + -0.206510*10)))
+
+# Print result
+print(my_prob1)
+```
+Base on the logistic regression model, there will be 18.2% chance of being 
+"present" for Age, Start, and Number
+
+# Question 6.7.5
+```{r}
+# Install package 
+#install.packages("lmtest")
+
+#Loading library
+library("lmtest")
+```
+Definition of homoscedastic and heterscedasticity (According to Frost, n.d):
+- Heteroscedasticity is a change in the spread of residuals over a range of measured values that is systematic. Because ordinary least squares (OLS) regression implies that all residuals are obtained from a population with a fixed variance, heteroscedasticity is a concern (homoscedasticity).
+
+
+Note from the book (Kurnicki, n.d): 
+
+- If p-value is lower than 0.5 or 1, we must reject the null hypothesis and 
+come to the conclusion that heteroscedasticity exists. 
+
+- The data is homoscedastic, according to the null hypothesis
+(error variances are all equal). This is why, in order to conclude 
+homoscedasticity, we need larger p-values.
+
+
+
+```{r}
+# Set x = Sepal.Width, y = Sepal.Length
+plot(x= mydf_iris$Sepal.Width, y=mydf_iris$Sepal.Length, type = "p")
+
+
+```
+As a result, this is homoscedastic
+
+```{r}
+# Testing for heteroscendasticity by using linear  
+# x = Sepal.Width, y = Sepal.Length
+swidth_slength <- lm(Sepal.Length~Sepal.Width, data = mydf_iris)
+bptest(swidth_slength)
+```
+The p-value is 0.3764
+
+```{r}
+# Set x = Petal.Length, y = Sepal.Length
+plot(x= mydf_iris$Petal.Length, y=mydf_iris$Sepal.Length, type = "p")
+
+```
+As a result, this is heteroscedastic
+
+```{r}
+# Testing for heteroscendasticity by using linear  
+# x = Petal.Length, y = Sepal.Length
+plength_slength <- lm(Petal.Length~Sepal.Length, data = mydf_iris)
+bptest(plength_slength)
+```
+The p-value is 0.07715
+
+
+```{r}
+# Set x = Petal.Width, y = Sepal.Length
+plot(x= mydf_iris$Petal.Width, y=mydf_iris$Sepal.Length, type = "p")
+
+```
+As a result, this is heteroscedastic 
+
+```{r}
+# Testing for heteroscendasticity by using linear  
+# x = Petal.Width, y = Sepal.Length
+plength_slength <- lm(Petal.Width~Sepal.Length, data = mydf_iris)
+bptest(plength_slength)
+```
+The p-value is 0.4195 
+
+
+Reference: 
+
+Frost, J.(n.d). Heteroscedasticity in Regression Analysis. Retrieved on
+February 08, 2022. Available at:
+https://statisticsbyjim.com/regression/heteroscedasticity-regression/. 
+
+Kurnicki, T.(n.d). Learn R. By coding. 
+
